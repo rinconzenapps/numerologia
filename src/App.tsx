@@ -109,23 +109,19 @@ export default function App() {
     try {
       const element = pdfRef.current;
       
-      // Capturar el contenido como imagen de alta resolución
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: "#fcfaf7",
-        windowWidth: element.scrollWidth,
         onclone: (clonedDoc) => {
-          // Aseguramos que elementos ocultos o animaciones no afecten
           const pdfOnly = clonedDoc.querySelector(".pdf-only") as HTMLElement;
           if (pdfOnly) pdfOnly.style.display = "block";
         }
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      
-      // Crear PDF con dimensiones calculadas a partir de la imagen
       const pdf = new jsPDF({
         orientation: "p",
         unit: "mm",
@@ -136,27 +132,22 @@ export default function App() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      // Si el reporte es muy largo, ajustamos o creamos múltiples páginas
-      // Para este reporte, una página larga o escalada suele bastar
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       
-      pdf.save(`Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`);
+      // Use output with blob to force download in some restricted environments
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
     } catch (error) {
       console.error("PDF Export failed", error);
-      // Fallback: Intentamos con el método automático si el manual falla
-      try {
-        const opt = {
-          margin: 10,
-          filename: `Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        } as any;
-        await html2pdf().set(opt).from(pdfRef.current).save();
-      } catch (e) {
-        alert("No se pudo generar el PDF directamente. Por favor, intenta usar la opción de Imprimir (Ctrl+P) y Guardar como PDF.");
-      }
+      alert("Hubo un error al generar el PDF. Si el problema persiste, intenta abrir la aplicación en una pestaña nueva (usando el icono de la flecha en la esquina superior derecha) y descarga desde allí.");
     } finally {
       setIsExporting(false);
     }
