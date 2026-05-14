@@ -32,6 +32,8 @@ import {
   DetailedMeaning
 } from "./lib/meanings";
 import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function App() {
   const [fullName, setFullName] = useState("");
@@ -104,30 +106,57 @@ export default function App() {
     
     setIsExporting(true);
     
-    // Tiny delay to ensure any pending UI updates are flushed
-    await new Promise(resolve => setTimeout(resolve, 300));
-
     try {
       const element = pdfRef.current;
-      const opt = {
-        margin: 10,
-        filename: `Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          letterRendering: true,
-          backgroundColor: "#fcfaf7"
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      } as any;
+      
+      // Capturar el contenido como imagen de alta resolución
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#fcfaf7",
+        windowWidth: element.scrollWidth,
+        onclone: (clonedDoc) => {
+          // Aseguramos que elementos ocultos o animaciones no afecten
+          const pdfOnly = clonedDoc.querySelector(".pdf-only") as HTMLElement;
+          if (pdfOnly) pdfOnly.style.display = "block";
+        }
+      });
 
-      // html2pdf returns a worker that manages the progress
-      await html2pdf().set(opt).from(element).save();
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      
+      // Crear PDF con dimensiones calculadas a partir de la imagen
+      const pdf = new jsPDF({
+        orientation: "p",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      // Si el reporte es muy largo, ajustamos o creamos múltiples páginas
+      // Para este reporte, una página larga o escalada suele bastar
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      
+      pdf.save(`Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`);
+      
     } catch (error) {
       console.error("PDF Export failed", error);
-      alert("Hubo un error al generar el PDF. Por favor intenta de nuevo.");
+      // Fallback: Intentamos con el método automático si el manual falla
+      try {
+        const opt = {
+          margin: 10,
+          filename: `Mapa-Numerologico-${fullName.replace(/\s+/g, "-")}.pdf`,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        } as any;
+        await html2pdf().set(opt).from(pdfRef.current).save();
+      } catch (e) {
+        alert("No se pudo generar el PDF directamente. Por favor, intenta usar la opción de Imprimir (Ctrl+P) y Guardar como PDF.");
+      }
     } finally {
       setIsExporting(false);
     }
