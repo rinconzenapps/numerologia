@@ -226,7 +226,7 @@ export default function App() {
       {/* Footer */}
       <footer className={`py-12 border-t no-print transition-colors duration-300 ${theme === 'dark' ? 'border-white/10' : 'border-slate-200'}`}>
          <div className="max-w-7xl mx-auto px-4 text-center">
-            <p className={`text-sm uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-indigo-400 opacity-50' : 'text-slate-400'}`}>© {new Date().getFullYear()} SENDERO NUMÉRICO • TU GUÍA VIBRACIONAL</p>
+            <p className={`text-sm uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-indigo-400 opacity-50' : 'text-slate-400'}`}>© {new Date().getFullYear()} SENDERO NUMÉRICO • RINCON ZEN</p>
          </div>
       </footer>
     </div>
