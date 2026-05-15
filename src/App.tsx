@@ -67,14 +67,19 @@ export default function App() {
             <h1 className={`text-2xl font-display font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500 ${theme === 'dark' ? 'from-pink-400 to-yellow-300' : 'from-pink-600 to-yellow-500'}`}>SENDERO NUMÉRICO</h1>
           </div>
           
-          <div className="flex gap-4">
-            <button 
-              onClick={toggleTheme}
-              className={`p-2 rounded-xl transition-all border ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 border-white/10 text-yellow-400' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-indigo-600'}`}
-              title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2 mr-2">
+              <span className={`text-[10px] font-black uppercase tracking-widest hidden sm:block ${theme === 'dark' ? 'text-indigo-400' : 'text-slate-400'}`}>
+                {theme === 'dark' ? 'Modo Sombra' : 'Modo Luz'}
+              </span>
+              <button 
+                onClick={toggleTheme}
+                className={`p-2 rounded-xl transition-all border ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 border-white/10 text-yellow-400' : 'bg-white hover:bg-slate-50 border-slate-200 text-indigo-600 shadow-sm'}`}
+                title={theme === 'dark' ? 'Ver en Luz' : 'Ver en Sombra'}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
 
             {results && (
               <>
